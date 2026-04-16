@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blockscape</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="sky-glow"></div>
+
+    <header class="hud-top">
+      <h1>Blockscape</h1>
+      <p>Creative voxel sandbox inspired by Minecraft</p>
+    </header>
+
+    <div id="reticle" aria-hidden="true"></div>
+
+    <aside class="hud-panel">
+      <p><strong>Click</strong> to lock pointer</p>
+      <p><strong>W A S D</strong> move</p>
+      <p><strong>Q / E</strong> descend / ascend</p>
+      <p><strong>Mouse</strong> look around</p>
+      <p><strong>Left click</strong> remove block</p>
+      <p><strong>Right click</strong> place block</p>
+      <p><strong>1-4</strong> change block type</p>
+      <p><strong>R</strong> reset spawn</p>
+      <div id="selected-block">Selected: Grass (1)</div>
+    </aside>
+
+    <main id="app"></main>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
