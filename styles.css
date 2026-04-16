@@ -117,6 +117,13 @@ canvas {
   font-weight: 700;
 }
 
+#mob-count,
+#sound-state {
+  margin-top: 0.35rem;
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
 #reticle {
   position: fixed;
   left: 50%;
@@ -204,7 +211,7 @@ body.is-touch .mobile-note {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
-  width: min(9.8rem, 42vw);
+  width: min(10.4rem, 45vw);
   pointer-events: auto;
 }
 

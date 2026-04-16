@@ -1,4 +1,5 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@r128/build/three.module.js";
+import { BlockType } from "./blocks.js";
 
 export class Player {
   constructor(camera, world) {
@@ -20,7 +21,7 @@ export class Player {
     this.gravity = -0.01;
     
     // Selected block
-    this.selectedBlockType = 0;
+    this.selectedBlockType = BlockType.GRASS;
     
     // Spawn point
     this.spawnPoint = new THREE.Vector3(0, 50, 0);
@@ -121,7 +122,7 @@ export class Player {
   }
   
   setSelectedBlock(index) {
-    this.selectedBlockType = Math.max(0, Math.min(3, index));
+    this.selectedBlockType = index;
   }
 
   setMoveInput(x, y) {
