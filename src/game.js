@@ -1,9 +1,29 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@r128/build/three.module.js";
 import { Player } from "./player.js";
 import { World } from "./world.js";
-import { HOTBAR_BLOCKS, BLOCK_NAMES, BlockType } from "./blocks.js";
+import { BLOCK_NAMES, BlockType } from "./blocks.js";
 import { MobManager } from "./mobs.js";
 import { AudioManager } from "./audio.js";
+import {
+  HOTBAR_ITEMS,
+  STARTER_ITEMS,
+  CRAFTING_RECIPES,
+  SMELTING_RECIPES,
+  ItemType,
+  createInventory,
+  getPlaceableBlock,
+  getItemName,
+  getItemTool,
+  getFoodValue,
+  getDropsForBlock,
+  getDropsForMob,
+  addItem,
+  removeItem,
+  getCount,
+  craftRecipe,
+  hasItems,
+  summarizeInventory
+} from "./items.js";
 
 export class Game {
   constructor(container) {
@@ -11,6 +31,15 @@ export class Game {
     this.scene = new THREE.Scene();
     this.pointer = new THREE.Vector2(0, 0);
     this.isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    this.inventory = createInventory(STARTER_ITEMS);
+    this.hotbarItems = HOTBAR_ITEMS.slice();
+    this.selectedHotbarIndex = 0;
+    this.selectedCraftIndex = 0;
+    this.selectedSmeltIndex = 0;
+    this.health = 20;
+    this.hunger = 20;
+    this.statusText = "Ready";
+    this.statusTimer = 0;
     this.setupScene();
     this.clock = new THREE.Clock();
     this.timeOfDay = 0.18;
@@ -38,7 +67,10 @@ export class Game {
     // Create world and player
     this.world = new World(this.scene);
     this.player = new Player(this.camera, this.world);
-    this.player.onJump = () => this.audio.playJump();
+    this.player.onJump = () => {
+      this.audio.playJump();
+      this.consumeHunger(0.08);
+    };
     this.mobManager = new MobManager(this.scene);
     this.audio = new AudioManager();
 
@@ -51,9 +83,13 @@ export class Game {
     // Handle controls and interactions
     this.setupInputHandling();
     this.setupTouchControls();
+    this.syncSelectedBlockWithHotbar();
     this.updateSelectedBlockDisplay();
     this.updateMobDisplay();
     this.updateSoundDisplay();
+    this.updateInventoryDisplay();
+    this.updateCraftingDisplay();
+    this.updateSurvivalDisplay();
     
     // Raycast for block interactions
     this.raycaster = new THREE.Raycaster();
@@ -142,10 +178,33 @@ export class Game {
     
     // Block selection (1-4 keys)
     document.addEventListener("keydown", (e) => {
-      if (e.key >= "1" && e.key <= String(HOTBAR_BLOCKS.length)) {
-        const blockIndex = parseInt(e.key) - 1;
-        this.player.setSelectedBlock(HOTBAR_BLOCKS[blockIndex]);
+      if (e.key >= "1" && e.key <= String(this.hotbarItems.length)) {
+        const blockIndex = parseInt(e.key, 10) - 1;
+        this.selectedHotbarIndex = blockIndex;
+        this.syncSelectedBlockWithHotbar();
         this.updateSelectedBlockDisplay();
+      }
+
+      if (e.key === "c" || e.key === "C") {
+        this.craftSelectedRecipe();
+      }
+
+      if (e.key === "v" || e.key === "V") {
+        this.selectedCraftIndex = (this.selectedCraftIndex + 1) % CRAFTING_RECIPES.length;
+        this.updateCraftingDisplay();
+      }
+
+      if (e.key === "b" || e.key === "B") {
+        this.smeltSelectedRecipe();
+      }
+
+      if (e.key === "n" || e.key === "N") {
+        this.selectedSmeltIndex = (this.selectedSmeltIndex + 1) % SMELTING_RECIPES.length;
+        this.updateCraftingDisplay();
+      }
+
+      if (e.key === "h" || e.key === "H") {
+        this.eatBestFood();
       }
 
       if (e.key === "m" || e.key === "M") {
@@ -158,6 +217,14 @@ export class Game {
         this.player.resetToSpawn();
       }
     });
+
+    this.renderer.domElement.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? 1 : -1;
+      this.selectedHotbarIndex = (this.selectedHotbarIndex + dir + this.hotbarItems.length) % this.hotbarItems.length;
+      this.syncSelectedBlockWithHotbar();
+      this.updateSelectedBlockDisplay();
+    }, { passive: false });
   }
 
   setupTouchControls() {
@@ -174,6 +241,8 @@ export class Game {
     const placeButton = document.getElementById("touch-place");
     const blockButton = document.getElementById("touch-block");
     const soundButton = document.getElementById("touch-sound");
+    const craftButton = document.getElementById("touch-craft");
+    const eatButton = document.getElementById("touch-eat");
 
     this.renderer.domElement.addEventListener("touchstart", () => {
       this.audio.unlock();
@@ -203,10 +272,23 @@ export class Game {
     if (blockButton) {
       blockButton.addEventListener("touchstart", (e) => {
         e.preventDefault();
-        const currentIndex = Math.max(0, HOTBAR_BLOCKS.indexOf(this.player.selectedBlockType));
-        const next = (currentIndex + 1) % HOTBAR_BLOCKS.length;
-        this.player.setSelectedBlock(HOTBAR_BLOCKS[next]);
+        this.selectedHotbarIndex = (this.selectedHotbarIndex + 1) % this.hotbarItems.length;
+        this.syncSelectedBlockWithHotbar();
         this.updateSelectedBlockDisplay();
+      }, { passive: false });
+    }
+
+    if (craftButton) {
+      craftButton.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        this.craftSelectedRecipe();
+      }, { passive: false });
+    }
+
+    if (eatButton) {
+      eatButton.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        this.eatBestFood();
       }, { passive: false });
     }
 
@@ -323,6 +405,10 @@ export class Game {
   breakBlock() {
     this.raycaster.setFromCamera(this.pointer, this.camera);
 
+    const selectedItem = this.hotbarItems[this.selectedHotbarIndex];
+    const selectedTool = getItemTool(selectedItem);
+    const attackPower = selectedTool?.kind === "sword" ? (selectedTool.damage ?? 1) : 1;
+
     const mobIntersects = this.raycaster.intersectObjects(this.mobManager.getMeshes(), true);
     const blocks = this.world.getBlockMeshes();
     const intersects = this.raycaster.intersectObjects(blocks, false);
@@ -331,8 +417,14 @@ export class Game {
     const nearestBlock = intersects.length > 0 ? intersects[0] : null;
 
     if (nearestMob && (!nearestBlock || nearestMob.distance < nearestBlock.distance)) {
-      if (this.mobManager.hitMobByMesh(nearestMob.object)) {
+      const result = this.mobManager.hitMobByMesh(nearestMob.object, attackPower);
+      if (result?.hit) {
         this.audio.playMobHit();
+        if (result.killed) {
+          const drops = getDropsForMob(result.type);
+          this.addDropsToInventory(drops);
+          this.setStatus(`Defeated ${result.type}`);
+        }
         this.updateMobDisplay();
       }
       return;
@@ -348,7 +440,10 @@ export class Game {
 
       const removed = this.world.removeBlock(blockPos);
       if (removed !== BlockType.AIR) {
+        const drops = getDropsForBlock(removed);
+        this.addDropsToInventory(drops);
         this.audio.playBreak();
+        this.consumeHunger(0.05);
       }
     }
   }
@@ -365,22 +460,41 @@ export class Game {
         .copy(point)
         .add(normal.multiplyScalar(0.5))
         .floor();
-      
-      const added = this.world.addBlock(blockPos, this.player.selectedBlockType);
+
+      const selectedItem = this.hotbarItems[this.selectedHotbarIndex];
+      const blockType = getPlaceableBlock(selectedItem);
+      if (!blockType) {
+        this.setStatus("Selected item is not placeable");
+        return;
+      }
+
+      if (getCount(this.inventory, selectedItem) <= 0) {
+        this.setStatus(`Out of ${getItemName(selectedItem)}`);
+        return;
+      }
+
+      const added = this.world.addBlock(blockPos, blockType);
       if (added) {
+        removeItem(this.inventory, selectedItem, 1);
+        this.syncSelectedBlockWithHotbar();
+        this.updateSelectedBlockDisplay();
+        this.updateInventoryDisplay();
         this.audio.playPlace();
+        this.consumeHunger(0.03);
       }
     }
   }
   
   updateSelectedBlockDisplay() {
-    const selectedType = this.player.selectedBlockType;
-    const index = HOTBAR_BLOCKS.indexOf(selectedType);
-    const slot = index >= 0 ? index + 1 : 1;
-    const name = BLOCK_NAMES[selectedType] ?? "Unknown";
+    const selectedItem = this.hotbarItems[this.selectedHotbarIndex];
+    const blockType = getPlaceableBlock(selectedItem);
+    const slot = this.selectedHotbarIndex + 1;
+    const name = getItemName(selectedItem);
+    const count = getCount(this.inventory, selectedItem);
+    const blockHint = blockType ? ` | Block: ${BLOCK_NAMES[blockType] ?? "Unknown"}` : "";
     const selectedDiv = document.getElementById("selected-block");
     if (selectedDiv) {
-      selectedDiv.textContent = `Selected: ${name} (${slot})`;
+      selectedDiv.textContent = `Selected: ${name} (${slot}) x${count}${blockHint}`;
     }
   }
 
@@ -396,6 +510,126 @@ export class Game {
     if (soundDiv) {
       soundDiv.textContent = `Sound: ${this.audio.enabled ? "On" : "Off"}`;
     }
+  }
+
+  updateInventoryDisplay() {
+    const invDiv = document.getElementById("inventory-summary");
+    if (!invDiv) return;
+    const lines = summarizeInventory(this.inventory, 8);
+    invDiv.textContent = lines.length > 0 ? `Inventory: ${lines.join(" | ")}` : "Inventory: Empty";
+  }
+
+  updateCraftingDisplay() {
+    const craftDiv = document.getElementById("crafting-state");
+    if (!craftDiv) return;
+
+    const recipe = CRAFTING_RECIPES[this.selectedCraftIndex];
+    const smelt = SMELTING_RECIPES[this.selectedSmeltIndex];
+    const canCraft = hasItems(this.inventory, recipe.input);
+    const canSmelt = hasItems(this.inventory, smelt.input);
+    craftDiv.textContent = `Craft[V/C]: ${recipe.label} (${canCraft ? "ready" : "missing"}) | Smelt[N/B]: ${smelt.label} (${canSmelt ? "ready" : "missing"})`;
+  }
+
+  updateSurvivalDisplay() {
+    const healthDiv = document.getElementById("health-state");
+    const hungerDiv = document.getElementById("hunger-state");
+    const statusDiv = document.getElementById("status-state");
+    if (healthDiv) healthDiv.textContent = `Health: ${Math.round(this.health)}`;
+    if (hungerDiv) hungerDiv.textContent = `Hunger: ${Math.round(this.hunger)}`;
+    if (statusDiv) statusDiv.textContent = `Status: ${this.statusText}`;
+  }
+
+  syncSelectedBlockWithHotbar() {
+    const item = this.hotbarItems[this.selectedHotbarIndex];
+    const placeable = getPlaceableBlock(item);
+    this.player.setSelectedBlock(placeable ?? BlockType.AIR);
+  }
+
+  addDropsToInventory(drops) {
+    if (!Array.isArray(drops) || drops.length === 0) return;
+    for (const drop of drops) {
+      addItem(this.inventory, drop.item, drop.count);
+    }
+    this.updateInventoryDisplay();
+    this.updateCraftingDisplay();
+    this.updateSelectedBlockDisplay();
+  }
+
+  craftSelectedRecipe() {
+    const recipe = CRAFTING_RECIPES[this.selectedCraftIndex];
+    if (!recipe) return;
+    const ok = craftRecipe(this.inventory, recipe);
+    if (ok) {
+      this.setStatus(`Crafted: ${recipe.label}`);
+      this.audio.playPlace();
+    } else {
+      this.setStatus("Missing crafting ingredients");
+    }
+    this.updateInventoryDisplay();
+    this.updateCraftingDisplay();
+    this.updateSelectedBlockDisplay();
+  }
+
+  smeltSelectedRecipe() {
+    const recipe = SMELTING_RECIPES[this.selectedSmeltIndex];
+    if (!recipe) return;
+    const ok = craftRecipe(this.inventory, recipe);
+    if (ok) {
+      this.setStatus(`Smelted: ${recipe.label}`);
+      this.audio.playPlace();
+    } else {
+      this.setStatus("Missing smelting ingredients");
+    }
+    this.updateInventoryDisplay();
+    this.updateCraftingDisplay();
+    this.updateSelectedBlockDisplay();
+  }
+
+  eatBestFood() {
+    const foods = [ItemType.COOKED_BEEF, ItemType.COOKED_PORK, ItemType.APPLE, ItemType.RAW_BEEF, ItemType.RAW_PORK];
+    for (const food of foods) {
+      if (getCount(this.inventory, food) > 0) {
+        const value = getFoodValue(food);
+        if (value > 0) {
+          removeItem(this.inventory, food, 1);
+          this.hunger = Math.min(20, this.hunger + value);
+          this.setStatus(`Ate ${getItemName(food)} (+${value} hunger)`);
+          this.updateInventoryDisplay();
+          this.updateCraftingDisplay();
+          this.updateSurvivalDisplay();
+          return;
+        }
+      }
+    }
+    this.setStatus("No food in inventory");
+  }
+
+  consumeHunger(value) {
+    this.hunger = Math.max(0, this.hunger - value);
+  }
+
+  updateSurvival(delta) {
+    this.consumeHunger(delta * 0.12);
+    if (this.hunger <= 0.1) {
+      this.health = Math.max(0, this.health - delta * 0.8);
+    } else if (this.hunger > 14) {
+      this.health = Math.min(20, this.health + delta * 0.25);
+    }
+
+    if (this.statusTimer > 0) {
+      this.statusTimer -= delta;
+      if (this.statusTimer <= 0) {
+        this.statusText = "Ready";
+      }
+    }
+
+    this.updateSurvivalDisplay();
+  }
+
+  setStatus(text) {
+    this.statusText = text;
+    this.statusTimer = 2.2;
+    this.updateSurvivalDisplay();
   }
 
   updateEnvironment(delta) {
@@ -449,6 +683,7 @@ export class Game {
     // Update world
     this.world.update(this.camera.position);
     this.mobManager.update(delta, this.player.position, this.world);
+    this.updateSurvival(delta);
     this.updateMobDisplay();
     this.updateEnvironment(delta);
     

@@ -96,7 +96,7 @@ export class MobManager {
     return this.mobs.map((mob) => mob.mesh);
   }
 
-  hitMobByMesh(mesh) {
+  hitMobByMesh(mesh, damage = 1) {
     const idx = this.mobs.findIndex((mob) => {
       if (mob.mesh === mesh) return true;
       let cursor = mesh;
@@ -111,7 +111,7 @@ export class MobManager {
     if (idx === -1) return null;
 
     const mob = this.mobs[idx];
-    mob.hp -= 1;
+    mob.hp -= Math.max(0.5, damage);
     mob.velocity.y = 0.13;
     const result = {
       hit: true,
