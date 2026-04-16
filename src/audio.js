@@ -75,4 +75,15 @@ export class AudioManager {
     this.tone({ frequency: 220, duration: 0.045, type: "sawtooth", gain: 0.07, release: 0.09 });
     this.tone({ frequency: 140, duration: 0.05, type: "triangle", gain: 0.04, release: 0.1, detune: -20 });
   }
+
+  playPickup() {
+    this.tone({ frequency: 520, duration: 0.018, type: "triangle", gain: 0.045, release: 0.03 });
+    this.tone({ frequency: 760, duration: 0.022, type: "sine", gain: 0.04, release: 0.04 });
+  }
+
+  playCraft() {
+    this.tone({ frequency: 320, duration: 0.03, type: "triangle", gain: 0.045, release: 0.05 });
+    this.tone({ frequency: 440, duration: 0.032, type: "triangle", gain: 0.04, release: 0.06 });
+    this.tone({ frequency: 660, duration: 0.038, type: "sine", gain: 0.03, release: 0.07 });
+  }
 }

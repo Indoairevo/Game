@@ -108,16 +108,23 @@ export class MobManager {
       }
       return false;
     });
-    if (idx === -1) return false;
+    if (idx === -1) return null;
 
     const mob = this.mobs[idx];
     mob.hp -= 1;
     mob.velocity.y = 0.13;
+    const result = {
+      hit: true,
+      killed: false,
+      type: mob.type,
+      position: mob.mesh.position.clone()
+    };
     if (mob.hp <= 0) {
       this.scene.remove(mob.mesh);
       this.mobs.splice(idx, 1);
+      result.killed = true;
     }
-    return true;
+    return result;
   }
 
   update(delta, playerPos, world) {
