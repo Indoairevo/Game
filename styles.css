@@ -1,10 +1,11 @@
 :root {
-  --bg-ink: #06121a;
-  --panel-bg: rgba(4, 16, 24, 0.68);
-  --panel-border: rgba(186, 237, 255, 0.45);
-  --text-main: #ecfbff;
-  --text-dim: #b6d2db;
-  --accent: #ffd37d;
+  --bg-ink: #07131b;
+  --panel-bg: rgba(7, 22, 32, 0.72);
+  --panel-border: rgba(186, 237, 255, 0.42);
+  --text-main: #eefcff;
+  --text-dim: #b8d4df;
+  --accent: #ffd27a;
+  --accent-2: #8fd2ff;
 }
 
 * {
@@ -18,8 +19,9 @@ body {
   margin: 0;
   overflow: hidden;
   font-family: "Trebuchet MS", "Gill Sans", sans-serif;
-  background: radial-gradient(circle at 20% 10%, #2f6f8b 0%, #0d2a3a 38%, var(--bg-ink) 100%);
+  background: radial-gradient(circle at 18% 8%, #347896 0%, #133446 38%, var(--bg-ink) 100%);
   color: var(--text-main);
+  touch-action: none;
 }
 
 #app,
@@ -29,16 +31,21 @@ canvas {
   display: block;
 }
 
+canvas {
+  cursor: pointer;
+  touch-action: none;
+}
+
 .sky-glow {
   position: fixed;
   inset: -15vmax;
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(circle at 20% 15%, rgba(255, 212, 125, 0.2), transparent 36%),
-    radial-gradient(circle at 82% 30%, rgba(131, 205, 245, 0.15), transparent 33%),
-    radial-gradient(circle at 50% 85%, rgba(62, 129, 105, 0.15), transparent 42%);
-  animation: pulse 7s ease-in-out infinite alternate;
+    radial-gradient(circle at 16% 14%, rgba(255, 210, 122, 0.23), transparent 34%),
+    radial-gradient(circle at 82% 24%, rgba(143, 210, 255, 0.16), transparent 33%),
+    radial-gradient(circle at 52% 82%, rgba(88, 145, 114, 0.15), transparent 42%);
+  animation: pulse 8s ease-in-out infinite alternate;
 }
 
 @keyframes pulse {
@@ -55,20 +62,20 @@ canvas {
 
 .hud-top {
   position: fixed;
-  z-index: 2;
+  z-index: 3;
   left: 1rem;
   top: 0.8rem;
   margin: 0;
-  padding: 0.5rem 0.8rem;
+  padding: 0.52rem 0.84rem;
   border-radius: 12px;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(6px);
 }
 
 .hud-top h1 {
   margin: 0;
-  font-size: clamp(1rem, 2.2vw, 1.4rem);
+  font-size: clamp(1rem, 2.2vw, 1.45rem);
   letter-spacing: 0.05em;
 }
 
@@ -82,13 +89,13 @@ canvas {
   position: fixed;
   right: 1rem;
   top: 1rem;
-  z-index: 2;
+  z-index: 3;
   width: min(16rem, 52vw);
   padding: 0.8rem;
   border: 1px solid var(--panel-border);
   border-radius: 14px;
   background: var(--panel-bg);
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(6px);
   font-size: 0.78rem;
   line-height: 1.35;
 }
@@ -98,58 +105,14 @@ canvas {
   color: var(--text-dim);
 }
 
-#reticle {
-  position: fixed;
-  width: 20px;
-  height: 20px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-  pointer-events: none;
-  border: 2px solid var(--accent);
-  border-radius: 50%;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-#reticle::before,
-#reticle::after {
-  content: '';
-  position: absolute;
-  background: var(--accent);
-}
-
-#reticle::before {
-  width: 8px;
-  height: 2px;
-  top: 50%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-50%);
-}
-
-#reticle::after {
-  width: 2px;
-  height: 8px;
-  top: 50%;
-  left: 50%;
-  transform: translateY(-50%) translateX(-50%);
+.mobile-note {
+  display: none;
 }
 
 #selected-block {
-  margin-top: 0.5rem;
+  margin-top: 0.55rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--panel-border);
-  color: var(--accent);
-  font-weight: bold;
-}
-
-canvas {
-  cursor: pointer;
-}
-
-#selected-block {
-  margin-top: 0.6rem;
   color: var(--accent);
   font-weight: 700;
 }
@@ -158,11 +121,11 @@ canvas {
   position: fixed;
   left: 50%;
   top: 50%;
-  width: 16px;
-  height: 16px;
-  margin-left: -8px;
-  margin-top: -8px;
-  z-index: 3;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  margin-top: -9px;
+  z-index: 4;
   pointer-events: none;
 }
 
@@ -170,29 +133,143 @@ canvas {
 #reticle::after {
   content: "";
   position: absolute;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 0 6px rgba(143, 210, 255, 0.4);
 }
 
 #reticle::before {
-  width: 16px;
+  width: 18px;
   height: 2px;
   left: 0;
-  top: 7px;
+  top: 8px;
 }
 
 #reticle::after {
   width: 2px;
-  height: 16px;
-  left: 7px;
+  height: 18px;
+  left: 8px;
   top: 0;
 }
 
-@media (max-width: 768px) {
+#touch-controls {
+  display: none;
+}
+
+body.is-touch #touch-controls {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  display: block;
+}
+
+body.is-touch .desktop-note {
+  display: none;
+}
+
+body.is-touch .mobile-note {
+  display: block;
+}
+
+.touch-stick {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  border: 1px solid rgba(143, 210, 255, 0.45);
+  background: rgba(9, 26, 36, 0.42);
+  backdrop-filter: blur(5px);
+  pointer-events: auto;
+}
+
+.stick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin-left: -23px;
+  margin-top: -23px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #fff5d6, var(--accent) 68%, #c89d4f);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+}
+
+.touch-actions {
+  position: fixed;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  width: min(9.8rem, 42vw);
+  pointer-events: auto;
+}
+
+.touch-button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 11px;
+  background: linear-gradient(145deg, rgba(21, 47, 61, 0.95), rgba(8, 27, 38, 0.95));
+  color: var(--text-main);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 0.62rem 0.38rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.26);
+}
+
+.touch-button:active {
+  transform: scale(0.98);
+  border-color: var(--accent-2);
+}
+
+@media (max-width: 900px) {
   .hud-panel {
     top: auto;
-    bottom: 0.9rem;
-    right: 0.9rem;
-    width: min(15rem, 92vw);
-    font-size: 0.74rem;
+    bottom: 7.5rem;
+    right: 0.75rem;
+    width: min(14.6rem, 66vw);
+    font-size: 0.72rem;
+  }
+
+  .hud-top p {
+    display: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .hud-top {
+    left: 0.6rem;
+    top: 0.55rem;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .hud-top h1 {
+    font-size: 0.95rem;
+  }
+
+  .hud-panel {
+    width: calc(100vw - 1.5rem);
+    right: 0.75rem;
+    bottom: 7.35rem;
+    max-height: 30vh;
+    overflow: auto;
+  }
+
+  .touch-stick {
+    width: 100px;
+    height: 100px;
+    left: 0.75rem;
+    bottom: 0.78rem;
+  }
+
+  .stick-knob {
+    width: 42px;
+    height: 42px;
+    margin-left: -21px;
+    margin-top: -21px;
   }
 }

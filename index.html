@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Blockscape</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -17,7 +17,9 @@
     <div id="reticle" aria-hidden="true"></div>
 
     <aside class="hud-panel">
-      <p><strong>Click</strong> to lock pointer</p>
+      <p class="desktop-note"><strong>Click</strong> to lock pointer</p>
+      <p class="mobile-note"><strong>Drag right side</strong> to look</p>
+      <p class="mobile-note"><strong>Left pad</strong> to move</p>
       <p><strong>W A S D</strong> move</p>
       <p><strong>Q / E</strong> descend / ascend</p>
       <p><strong>Mouse</strong> look around</p>
@@ -27,6 +29,19 @@
       <p><strong>R</strong> reset spawn</p>
       <div id="selected-block">Selected: Grass (1)</div>
     </aside>
+
+    <div id="touch-controls" aria-hidden="true">
+      <div id="move-stick" class="touch-stick">
+        <div class="stick-knob"></div>
+      </div>
+
+      <div class="touch-actions">
+        <button type="button" class="touch-button" id="touch-jump">Jump</button>
+        <button type="button" class="touch-button" id="touch-break">Break</button>
+        <button type="button" class="touch-button" id="touch-place">Place</button>
+        <button type="button" class="touch-button" id="touch-block">Block</button>
+      </div>
+    </div>
 
     <main id="app"></main>
 

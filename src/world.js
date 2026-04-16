@@ -100,14 +100,15 @@ export class World {
       
       if (faces.length === 0) continue;
       
-      const color = new THREE.Color(getBlockColor(type));
+      const baseColor = new THREE.Color(getBlockColor(type));
       
       for (const face of faces) {
         const verts = this.getFaceVertices(pos, face);
+        const faceColor = this.getFaceColor(baseColor, face, x, y, z);
         
         for (const vert of verts) {
           positions.push(vert.x, vert.y, vert.z);
-          colors.push(color.r, color.g, color.b);
+          colors.push(faceColor.r, faceColor.g, faceColor.b);
         }
         
         // Add indices for the face (two triangles)
@@ -121,9 +122,14 @@ export class World {
     geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(new Float32Array(colors), 3));
     geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
+    geometry.computeVertexNormals();
     
-    // Create mesh with vertex colors
-    const material = new THREE.MeshLambertMaterial({ vertexColors: true });
+    // Standard material makes the terrain react better to directional lighting.
+    const material = new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.88,
+      metalness: 0.02
+    });
     this.blocksMesh = new THREE.Mesh(geometry, material);
     this.blocksMesh.castShadow = true;
     this.blocksMesh.receiveShadow = true;
@@ -154,6 +160,20 @@ export class World {
     }
     
     return faces;
+  }
+
+  getFaceColor(baseColor, face, x, y, z) {
+    const noise = this.getColorNoise(x, y, z);
+    const color = baseColor.clone();
+    color.offsetHSL(0, 0, noise);
+    color.multiplyScalar(face.shade);
+    return color;
+  }
+
+  getColorNoise(x, y, z) {
+    const wave = Math.sin(x * 1.73 + z * 2.11 + y * 0.69) * 0.035;
+    const wave2 = Math.cos(x * 0.53 - z * 0.91) * 0.025;
+    return wave + wave2;
   }
   
   getFaceVertices(pos, face) {

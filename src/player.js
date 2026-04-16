@@ -6,12 +6,14 @@ export class Player {
     this.world = world;
     this.position = new THREE.Vector3(0, 50, 0);
     this.velocity = new THREE.Vector3();
-    this.euler = new THREE.Euler(0, 0, 0, "YXZ");
     this.isGrounded = false;
+    this.pitch = 0;
+    this.yaw = Math.PI;
+    this.touchMove = new THREE.Vector2();
     
     // Movement state
     this.keys = {};
-    this.sensitivity = 0.005;
+    this.sensitivity = 0.0026;
     this.speed = 0.15;
     this.sprintMultiplier = 2;
     this.jumpVelocity = 0.2;
@@ -29,9 +31,8 @@ export class Player {
   setupControls() {
     document.addEventListener("keydown", (e) => {
       this.keys[e.key.toLowerCase()] = true;
-      if (e.key === " " && this.isGrounded) {
-        this.velocity.y = this.jumpVelocity;
-        this.isGrounded = false;
+      if (e.key === " ") {
+        this.jump();
       }
     });
     
@@ -42,34 +43,39 @@ export class Player {
     // Mouse movement
     document.addEventListener("mousemove", (e) => {
       if (document.pointerLockElement) {
-        this.euler.setFromQuaternion(this.camera.quaternion);
-        this.euler.rotateY(-e.movementX * this.sensitivity);
-        this.euler.rotateX(-e.movementY * this.sensitivity);
-        
-        // Clamp vertical rotation
-        this.euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.euler.x));
-        
-        this.camera.quaternion.setFromEuler(this.euler);
+        this.addLookDelta(e.movementX, e.movementY);
       }
     });
+
+    this.applyLook();
   }
   
   update() {
-    // Get forward and right vectors
-    const forward = new THREE.Vector3();
-    const right = new THREE.Vector3();
-    this.camera.getWorldDirection(forward);
-    forward.y = 0;
-    forward.normalize();
-    right.crossVectors(this.camera.up, forward).normalize();
+    const forward = new THREE.Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
+    const right = new THREE.Vector3(Math.sin(this.yaw - Math.PI / 2), 0, Math.cos(this.yaw - Math.PI / 2));
     
     // Calculate movement direction
-    let moveDirection = new THREE.Vector3();
-    
-    if (this.keys["w"]) moveDirection.add(forward);
-    if (this.keys["s"]) moveDirection.sub(forward);
-    if (this.keys["a"]) moveDirection.sub(right);
-    if (this.keys["d"]) moveDirection.add(right);
+    const moveDirection = new THREE.Vector3();
+    let moveX = 0;
+    let moveY = 0;
+
+    if (this.keys["w"]) moveY += 1;
+    if (this.keys["s"]) moveY -= 1;
+    if (this.keys["a"]) moveX -= 1;
+    if (this.keys["d"]) moveX += 1;
+
+    moveX += this.touchMove.x;
+    moveY += this.touchMove.y;
+
+    const moveVec = new THREE.Vector2(moveX, moveY);
+    if (moveVec.length() > 1) {
+      moveVec.normalize();
+      moveX = moveVec.x;
+      moveY = moveVec.y;
+    }
+
+    moveDirection.addScaledVector(right, moveX);
+    moveDirection.addScaledVector(forward, moveY);
     
     if (moveDirection.length() > 0) {
       moveDirection.normalize();
@@ -116,6 +122,32 @@ export class Player {
   
   setSelectedBlock(index) {
     this.selectedBlockType = Math.max(0, Math.min(3, index));
+  }
+
+  setMoveInput(x, y) {
+    this.touchMove.set(
+      Math.max(-1, Math.min(1, x)),
+      Math.max(-1, Math.min(1, y))
+    );
+  }
+
+  addLookDelta(deltaX, deltaY) {
+    this.yaw -= deltaX * this.sensitivity;
+    this.pitch -= deltaY * this.sensitivity;
+    this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch));
+    this.applyLook();
+  }
+
+  applyLook() {
+    const euler = new THREE.Euler(this.pitch, this.yaw, 0, "YXZ");
+    this.camera.quaternion.setFromEuler(euler);
+  }
+
+  jump() {
+    if (this.isGrounded) {
+      this.velocity.y = this.jumpVelocity;
+      this.isGrounded = false;
+    }
   }
   
   resetToSpawn() {
