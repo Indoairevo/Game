@@ -4,12 +4,12 @@ class Mob {
   constructor(type, mesh) {
     this.type = type;
     this.mesh = mesh;
-    this.hp = type === "cow" ? 4 : 3;
+    this.hp = type === "slime" ? 3 : 4;
     this.maxHp = this.hp;
     this.velocity = new THREE.Vector3();
     this.wanderDir = new THREE.Vector3(1, 0, 0);
     this.nextTurnIn = 0.5 + Math.random() * 2.4;
-    this.speed = type === "cow" ? 1.4 : 1.8;
+    this.speed = type === "slime" ? 1.8 : 1.35;
     this.bob = Math.random() * Math.PI * 2;
   }
 }
@@ -27,6 +27,16 @@ export class MobManager {
       roughness: 0.86,
       metalness: 0.02
     });
+    this.pigMaterial = new THREE.MeshStandardMaterial({
+      color: 0xd08a96,
+      roughness: 0.84,
+      metalness: 0.01
+    });
+    this.sheepMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf1f1f1,
+      roughness: 0.9,
+      metalness: 0.0
+    });
     this.slimeMaterial = new THREE.MeshStandardMaterial({
       color: 0x77d66f,
       roughness: 0.35,
@@ -37,17 +47,18 @@ export class MobManager {
   }
 
   createMobMesh(type) {
-    if (type === "cow") {
+    if (type === "cow" || type === "pig" || type === "sheep") {
       const group = new THREE.Group();
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.65, 1.5), this.cowMaterial);
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.52, 0.52), this.cowMaterial);
+      const material = type === "cow" ? this.cowMaterial : (type === "pig" ? this.pigMaterial : this.sheepMaterial);
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.65, 1.5), material);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.52, 0.52), material);
       const legGeo = new THREE.BoxGeometry(0.18, 0.55, 0.18);
 
       const legs = [
-        new THREE.Mesh(legGeo, this.cowMaterial),
-        new THREE.Mesh(legGeo, this.cowMaterial),
-        new THREE.Mesh(legGeo, this.cowMaterial),
-        new THREE.Mesh(legGeo, this.cowMaterial)
+        new THREE.Mesh(legGeo, material),
+        new THREE.Mesh(legGeo, material),
+        new THREE.Mesh(legGeo, material),
+        new THREE.Mesh(legGeo, material)
       ];
 
       body.position.set(0, 1.15, 0);
@@ -81,7 +92,11 @@ export class MobManager {
     const ground = world.getGroundLevel(new THREE.Vector3(x, world.worldMaxY, z));
     const y = ground + 1;
 
-    const type = Math.random() > 0.45 ? "cow" : "slime";
+    const roll = Math.random();
+    let type = "cow";
+    if (roll < 0.25) type = "slime";
+    else if (roll < 0.5) type = "pig";
+    else if (roll < 0.75) type = "sheep";
     const mesh = this.createMobMesh(type);
     mesh.position.set(x + 0.5, y, z + 0.5);
     mesh.rotation.y = Math.random() * Math.PI * 2;

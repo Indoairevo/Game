@@ -25,12 +25,20 @@
       <p><strong>Mouse</strong> look around</p>
       <p><strong>Left click</strong> remove block</p>
       <p><strong>Right click</strong> place block</p>
-      <p><strong>1-8</strong> change block type</p>
+      <p><strong>1-9 / Wheel</strong> hotbar select</p>
       <p><strong>M</strong> toggle sound</p>
+      <p><strong>V / C</strong> cycle/craft recipe</p>
+      <p><strong>N / B</strong> cycle/smelt recipe</p>
+      <p><strong>H</strong> eat best food</p>
       <p><strong>R</strong> reset spawn</p>
       <div id="selected-block">Selected: Grass (1)</div>
       <div id="mob-count">Mobs nearby: 0</div>
       <div id="sound-state">Sound: On</div>
+      <div id="health-state">Health: 20</div>
+      <div id="hunger-state">Hunger: 20</div>
+      <div id="status-state">Status: Ready</div>
+      <div id="crafting-state">Craft[V/C]: - | Smelt[N/B]: -</div>
+      <div id="inventory-summary">Inventory: Loading...</div>
     </aside>
 
     <div id="touch-controls" aria-hidden="true">
@@ -44,6 +52,8 @@
         <button type="button" class="touch-button" id="touch-place">Place</button>
         <button type="button" class="touch-button" id="touch-block">Block</button>
         <button type="button" class="touch-button" id="touch-sound">Sound</button>
+        <button type="button" class="touch-button" id="touch-craft">Craft</button>
+        <button type="button" class="touch-button" id="touch-eat">Eat</button>
       </div>
     </div>
 

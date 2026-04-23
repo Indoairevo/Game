@@ -24,9 +24,22 @@ export const ItemType = {
   COOKED_BEEF: "cooked_beef",
   RAW_PORK: "raw_pork",
   COOKED_PORK: "cooked_pork",
+  RAW_CHICKEN: "raw_chicken",
+  COOKED_CHICKEN: "cooked_chicken",
   WOOL: "wool",
   LEATHER: "leather",
   SLIME_BALL: "slime_ball",
+  ROTTEN_FLESH: "rotten_flesh",
+  BONE: "bone",
+  STRING: "string",
+  ARROW: "arrow",
+  BOW: "bow",
+  WHEAT: "wheat",
+  BREAD: "bread",
+  CARROT: "carrot",
+  POTATO: "potato",
+  BAKED_POTATO: "baked_potato",
+  EMERALD: "emerald",
   TORCH: "torch",
   WOODEN_PICKAXE: "wooden_pickaxe",
   STONE_PICKAXE: "stone_pickaxe",
@@ -63,9 +76,22 @@ export const ITEM_INFO = {
   [ItemType.COOKED_BEEF]: { name: "Steak", color: 0x9e5533, food: 8 },
   [ItemType.RAW_PORK]: { name: "Raw Pork", color: 0xb04f5f, food: 2 },
   [ItemType.COOKED_PORK]: { name: "Cooked Pork", color: 0xcd7e4a, food: 8 },
+  [ItemType.RAW_CHICKEN]: { name: "Raw Chicken", color: 0xe1b8a9, food: 2 },
+  [ItemType.COOKED_CHICKEN]: { name: "Cooked Chicken", color: 0xd69b63, food: 6 },
   [ItemType.WOOL]: { name: "Wool", color: 0xe8e8e8 },
   [ItemType.LEATHER]: { name: "Leather", color: 0x7e4b2a },
   [ItemType.SLIME_BALL]: { name: "Slime Ball", color: 0x7dd66f },
+  [ItemType.ROTTEN_FLESH]: { name: "Rotten Flesh", color: 0x6b5a43, food: 2 },
+  [ItemType.BONE]: { name: "Bone", color: 0xe8e0cf },
+  [ItemType.STRING]: { name: "String", color: 0xc9c3b6 },
+  [ItemType.ARROW]: { name: "Arrow", color: 0xa8a1a0 },
+  [ItemType.BOW]: { name: "Bow", color: 0x8d6b42, tool: { kind: "bow", tier: 1, damage: 2.8 } },
+  [ItemType.WHEAT]: { name: "Wheat", color: 0xd6c36f },
+  [ItemType.BREAD]: { name: "Bread", color: 0xb6823f, food: 5 },
+  [ItemType.CARROT]: { name: "Carrot", color: 0xdf8c2f, food: 4 },
+  [ItemType.POTATO]: { name: "Potato", color: 0xb48b5f, food: 2 },
+  [ItemType.BAKED_POTATO]: { name: "Baked Potato", color: 0xcb9559, food: 5 },
+  [ItemType.EMERALD]: { name: "Emerald", color: 0x55d37a },
   [ItemType.TORCH]: { name: "Torch", color: 0xffb347 },
   [ItemType.WOODEN_PICKAXE]: { name: "Wooden Pickaxe", color: 0x9b7a49, tool: { kind: "pickaxe", tier: 1, damage: 1, speed: 1.2 } },
   [ItemType.STONE_PICKAXE]: { name: "Stone Pickaxe", color: 0x8c8c8c, tool: { kind: "pickaxe", tier: 2, damage: 1.2, speed: 1.5 } },
@@ -97,7 +123,10 @@ export const HOTBAR_ITEMS = [
   ItemType.SAND,
   ItemType.GLASS,
   ItemType.TORCH,
-  ItemType.STONE_SWORD
+  ItemType.STONE_SWORD,
+  ItemType.WOODEN_PICKAXE,
+  ItemType.BOW,
+  ItemType.APPLE
 ];
 
 export const BLOCK_DROP_ITEMS = {
@@ -126,7 +155,20 @@ export const MOB_DROP_ITEMS = {
   ],
   slime: [{ item: ItemType.SLIME_BALL, count: 1 }],
   pig: [{ item: ItemType.RAW_PORK, count: 2 }],
-  sheep: [{ item: ItemType.WOOL, count: 1 }]
+  sheep: [{ item: ItemType.WOOL, count: 1 }],
+  zombie: [
+    { item: ItemType.ROTTEN_FLESH, count: 1 },
+    { item: ItemType.BONE, count: 1 }
+  ],
+  skeleton: [
+    { item: ItemType.BONE, count: 2 },
+    { item: ItemType.STRING, count: 1 }
+  ],
+  spider: [{ item: ItemType.STRING, count: 2 }],
+  chicken: [
+    { item: ItemType.RAW_CHICKEN, count: 1 },
+    { item: ItemType.FEATHER, count: 1 }
+  ]
 };
 
 export const CRAFTING_RECIPES = [
@@ -191,6 +233,18 @@ export const CRAFTING_RECIPES = [
     output: { [ItemType.STONE_SWORD]: 1 }
   },
   {
+    id: "bow",
+    label: "3 String + 3 Sticks -> Bow",
+    input: { [ItemType.STRING]: 3, [ItemType.STICK]: 3 },
+    output: { [ItemType.BOW]: 1 }
+  },
+  {
+    id: "bread",
+    label: "3 Wheat -> Bread",
+    input: { [ItemType.WHEAT]: 3 },
+    output: { [ItemType.BREAD]: 1 }
+  },
+  {
     id: "iron_sword",
     label: "2 Iron Ingot + 1 Stick -> Iron Sword",
     input: { [ItemType.IRON_INGOT]: 2, [ItemType.STICK]: 1 },
@@ -240,6 +294,18 @@ export const SMELTING_RECIPES = [
     label: "1 Clay Ball + 1 Coal -> 1 Brick",
     input: { [ItemType.CLAY_BALL]: 1, [ItemType.COAL]: 1 },
     output: { [ItemType.BRICK]: 1 }
+  },
+  {
+    id: "chicken_smelting",
+    label: "1 Raw Chicken + 1 Coal -> 1 Cooked Chicken",
+    input: { [ItemType.RAW_CHICKEN]: 1, [ItemType.COAL]: 1 },
+    output: { [ItemType.COOKED_CHICKEN]: 1 }
+  },
+  {
+    id: "potato_smelting",
+    label: "1 Potato + 1 Coal -> 1 Baked Potato",
+    input: { [ItemType.POTATO]: 1, [ItemType.COAL]: 1 },
+    output: { [ItemType.BAKED_POTATO]: 1 }
   }
 ];
 
