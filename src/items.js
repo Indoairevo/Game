@@ -26,7 +26,6 @@ export const ItemType = {
   COOKED_PORK: "cooked_pork",
   RAW_CHICKEN: "raw_chicken",
   COOKED_CHICKEN: "cooked_chicken",
-  WOOL: "wool",
   LEATHER: "leather",
   SLIME_BALL: "slime_ball",
   ROTTEN_FLESH: "rotten_flesh",
@@ -78,8 +77,7 @@ export const ITEM_INFO = {
   [ItemType.COOKED_PORK]: { name: "Cooked Pork", color: 0xcd7e4a, food: 8 },
   [ItemType.RAW_CHICKEN]: { name: "Raw Chicken", color: 0xe1b8a9, food: 2 },
   [ItemType.COOKED_CHICKEN]: { name: "Cooked Chicken", color: 0xd69b63, food: 6 },
-  [ItemType.WOOL]: { name: "Wool", color: 0xe8e8e8 },
-  [ItemType.LEATHER]: { name: "Leather", color: 0x7e4b2a },
+  [ItemType.WOOL]: { name: "Wool", color: 0xe8e8e8 }, },
   [ItemType.SLIME_BALL]: { name: "Slime Ball", color: 0x7dd66f },
   [ItemType.ROTTEN_FLESH]: { name: "Rotten Flesh", color: 0x6b5a43, food: 2 },
   [ItemType.BONE]: { name: "Bone", color: 0xe8e0cf },
@@ -114,7 +112,6 @@ export const STARTER_ITEMS = {
   [ItemType.APPLE]: 4
 };
 
-export const HOTBAR_ITEMS = [
   ItemType.GRASS_BLOCK,
   ItemType.DIRT,
   ItemType.COBBLESTONE,
