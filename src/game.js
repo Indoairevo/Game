@@ -22,7 +22,9 @@ import {
   getCount,
   craftRecipe,
   hasItems,
-  summarizeInventory
+  summarizeInventory,
+  INVENTORY_MAX_SLOTS,
+  getUsedSlots
 } from "./items.js";
 
 export class Game {
@@ -516,7 +518,9 @@ export class Game {
     const invDiv = document.getElementById("inventory-summary");
     if (!invDiv) return;
     const lines = summarizeInventory(this.inventory, 8);
-    invDiv.textContent = lines.length > 0 ? `Inventory: ${lines.join(" | ")}` : "Inventory: Empty";
+    const used = getUsedSlots(this.inventory);
+    const prefix = `Inventory (${used}/${INVENTORY_MAX_SLOTS})`;
+    invDiv.textContent = lines.length > 0 ? `${prefix}: ${lines.join(" | ")}` : `${prefix}: Empty`;
   }
 
   updateCraftingDisplay() {
@@ -547,12 +551,17 @@ export class Game {
 
   addDropsToInventory(drops) {
     if (!Array.isArray(drops) || drops.length === 0) return;
+    let overflowDrops = 0;
     for (const drop of drops) {
-      addItem(this.inventory, drop.item, drop.count);
+      const added = addItem(this.inventory, drop.item, drop.count);
+      overflowDrops += Math.max(0, (drop.count ?? 0) - added);
     }
     this.updateInventoryDisplay();
     this.updateCraftingDisplay();
     this.updateSelectedBlockDisplay();
+    if (overflowDrops > 0) {
+      this.setStatus(`Inventory full: ${overflowDrops} item(s) dropped`);
+    }
   }
 
   craftSelectedRecipe() {
@@ -562,6 +571,8 @@ export class Game {
     if (ok) {
       this.setStatus(`Crafted: ${recipe.label}`);
       this.audio.playPlace();
+    } else if (hasItems(this.inventory, recipe.input)) {
+      this.setStatus("Inventory has no room for crafted item");
     } else {
       this.setStatus("Missing crafting ingredients");
     }
@@ -577,6 +588,8 @@ export class Game {
     if (ok) {
       this.setStatus(`Smelted: ${recipe.label}`);
       this.audio.playPlace();
+    } else if (hasItems(this.inventory, recipe.input)) {
+      this.setStatus("Inventory has no room for smelted item");
     } else {
       this.setStatus("Missing smelting ingredients");
     }

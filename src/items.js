@@ -1,5 +1,8 @@
 import { BlockType } from "./blocks.js";
 
+export const INVENTORY_MAX_SLOTS = 24;
+export const DEFAULT_STACK_SIZE = 64;
+
 export const ItemType = {
   GRASS_BLOCK: "grass_block",
   DIRT: "dirt",
@@ -27,6 +30,8 @@ export const ItemType = {
   RAW_CHICKEN: "raw_chicken",
   COOKED_CHICKEN: "cooked_chicken",
   LEATHER: "leather",
+  WOOL: "wool",
+  FEATHER: "feather",
   SLIME_BALL: "slime_ball",
   ROTTEN_FLESH: "rotten_flesh",
   BONE: "bone",
@@ -77,13 +82,15 @@ export const ITEM_INFO = {
   [ItemType.COOKED_PORK]: { name: "Cooked Pork", color: 0xcd7e4a, food: 8 },
   [ItemType.RAW_CHICKEN]: { name: "Raw Chicken", color: 0xe1b8a9, food: 2 },
   [ItemType.COOKED_CHICKEN]: { name: "Cooked Chicken", color: 0xd69b63, food: 6 },
-  [ItemType.WOOL]: { name: "Wool", color: 0xe8e8e8 }, },
+  [ItemType.LEATHER]: { name: "Leather", color: 0x8d5f46 },
+  [ItemType.WOOL]: { name: "Wool", color: 0xe8e8e8 },
+  [ItemType.FEATHER]: { name: "Feather", color: 0xece6dc },
   [ItemType.SLIME_BALL]: { name: "Slime Ball", color: 0x7dd66f },
   [ItemType.ROTTEN_FLESH]: { name: "Rotten Flesh", color: 0x6b5a43, food: 2 },
   [ItemType.BONE]: { name: "Bone", color: 0xe8e0cf },
   [ItemType.STRING]: { name: "String", color: 0xc9c3b6 },
   [ItemType.ARROW]: { name: "Arrow", color: 0xa8a1a0 },
-  [ItemType.BOW]: { name: "Bow", color: 0x8d6b42, tool: { kind: "bow", tier: 1, damage: 2.8 } },
+  [ItemType.BOW]: { name: "Bow", color: 0x8d6b42, maxStack: 1, tool: { kind: "bow", tier: 1, damage: 2.8 } },
   [ItemType.WHEAT]: { name: "Wheat", color: 0xd6c36f },
   [ItemType.BREAD]: { name: "Bread", color: 0xb6823f, food: 5 },
   [ItemType.CARROT]: { name: "Carrot", color: 0xdf8c2f, food: 4 },
@@ -91,15 +98,15 @@ export const ITEM_INFO = {
   [ItemType.BAKED_POTATO]: { name: "Baked Potato", color: 0xcb9559, food: 5 },
   [ItemType.EMERALD]: { name: "Emerald", color: 0x55d37a },
   [ItemType.TORCH]: { name: "Torch", color: 0xffb347 },
-  [ItemType.WOODEN_PICKAXE]: { name: "Wooden Pickaxe", color: 0x9b7a49, tool: { kind: "pickaxe", tier: 1, damage: 1, speed: 1.2 } },
-  [ItemType.STONE_PICKAXE]: { name: "Stone Pickaxe", color: 0x8c8c8c, tool: { kind: "pickaxe", tier: 2, damage: 1.2, speed: 1.5 } },
-  [ItemType.IRON_PICKAXE]: { name: "Iron Pickaxe", color: 0xb0a090, tool: { kind: "pickaxe", tier: 3, damage: 1.4, speed: 1.8 } },
-  [ItemType.GOLD_PICKAXE]: { name: "Gold Pickaxe", color: 0xdcb438, tool: { kind: "pickaxe", tier: 2, damage: 1.1, speed: 2.2 } },
-  [ItemType.DIAMOND_PICKAXE]: { name: "Diamond Pickaxe", color: 0x4cc8da, tool: { kind: "pickaxe", tier: 4, damage: 1.6, speed: 2.0 } },
-  [ItemType.WOODEN_SWORD]: { name: "Wooden Sword", color: 0x9b7a49, tool: { kind: "sword", tier: 1, damage: 2.3 } },
-  [ItemType.STONE_SWORD]: { name: "Stone Sword", color: 0x8c8c8c, tool: { kind: "sword", tier: 2, damage: 3.0 } },
-  [ItemType.IRON_SWORD]: { name: "Iron Sword", color: 0xb0a090, tool: { kind: "sword", tier: 3, damage: 4.0 } },
-  [ItemType.DIAMOND_SWORD]: { name: "Diamond Sword", color: 0x4cc8da, tool: { kind: "sword", tier: 4, damage: 5.0 } }
+  [ItemType.WOODEN_PICKAXE]: { name: "Wooden Pickaxe", color: 0x9b7a49, maxStack: 1, tool: { kind: "pickaxe", tier: 1, damage: 1, speed: 1.2 } },
+  [ItemType.STONE_PICKAXE]: { name: "Stone Pickaxe", color: 0x8c8c8c, maxStack: 1, tool: { kind: "pickaxe", tier: 2, damage: 1.2, speed: 1.5 } },
+  [ItemType.IRON_PICKAXE]: { name: "Iron Pickaxe", color: 0xb0a090, maxStack: 1, tool: { kind: "pickaxe", tier: 3, damage: 1.4, speed: 1.8 } },
+  [ItemType.GOLD_PICKAXE]: { name: "Gold Pickaxe", color: 0xdcb438, maxStack: 1, tool: { kind: "pickaxe", tier: 2, damage: 1.1, speed: 2.2 } },
+  [ItemType.DIAMOND_PICKAXE]: { name: "Diamond Pickaxe", color: 0x4cc8da, maxStack: 1, tool: { kind: "pickaxe", tier: 4, damage: 1.6, speed: 2.0 } },
+  [ItemType.WOODEN_SWORD]: { name: "Wooden Sword", color: 0x9b7a49, maxStack: 1, tool: { kind: "sword", tier: 1, damage: 2.3 } },
+  [ItemType.STONE_SWORD]: { name: "Stone Sword", color: 0x8c8c8c, maxStack: 1, tool: { kind: "sword", tier: 2, damage: 3.0 } },
+  [ItemType.IRON_SWORD]: { name: "Iron Sword", color: 0xb0a090, maxStack: 1, tool: { kind: "sword", tier: 3, damage: 4.0 } },
+  [ItemType.DIAMOND_SWORD]: { name: "Diamond Sword", color: 0x4cc8da, maxStack: 1, tool: { kind: "sword", tier: 4, damage: 5.0 } }
 };
 
 export const STARTER_ITEMS = {
@@ -112,6 +119,7 @@ export const STARTER_ITEMS = {
   [ItemType.APPLE]: 4
 };
 
+export const HOTBAR_ITEMS = [
   ItemType.GRASS_BLOCK,
   ItemType.DIRT,
   ItemType.COBBLESTONE,
@@ -309,9 +317,7 @@ export const SMELTING_RECIPES = [
 export function createInventory(seed = {}) {
   const map = new Map();
   for (const [id, count] of Object.entries(seed)) {
-    if (count > 0) {
-      map.set(id, Math.floor(count));
-    }
+    addItem(map, id, count);
   }
   return map;
 }
@@ -336,23 +342,61 @@ export function getFoodValue(itemId) {
   return ITEM_INFO[itemId]?.food ?? 0;
 }
 
+export function getItemStackLimit(itemId) {
+  return Math.max(1, Math.floor(ITEM_INFO[itemId]?.maxStack ?? DEFAULT_STACK_SIZE));
+}
+
 export function getCount(inventory, itemId) {
   return inventory.get(itemId) ?? 0;
 }
 
+export function getUsedSlots(inventory) {
+  return Array.from(inventory.values()).filter((count) => count > 0).length;
+}
+
+export function getFreeSlots(inventory) {
+  return Math.max(0, INVENTORY_MAX_SLOTS - getUsedSlots(inventory));
+}
+
+export function getItemRoom(inventory, itemId) {
+  const current = getCount(inventory, itemId);
+  return Math.max(0, getItemStackLimit(itemId) - current);
+}
+
+export function canAddItem(inventory, itemId, count = 1) {
+  if (!itemId || count <= 0) return true;
+  const requested = Math.floor(count);
+  const room = getItemRoom(inventory, itemId);
+  if (room >= requested) return true;
+  if (room > 0) return false;
+  return !inventory.has(itemId) && getFreeSlots(inventory) > 0 && getItemStackLimit(itemId) >= requested;
+}
+
 export function addItem(inventory, itemId, count = 1) {
   if (!itemId || count <= 0) return 0;
+  const requested = Math.floor(count);
   const current = getCount(inventory, itemId);
-  const next = current + Math.floor(count);
-  inventory.set(itemId, next);
-  return next;
+  if (current <= 0 && !inventory.has(itemId) && getFreeSlots(inventory) <= 0) {
+    return 0;
+  }
+
+  const stackLimit = getItemStackLimit(itemId);
+  const room = Math.max(0, stackLimit - current);
+  const added = Math.min(requested, room);
+  if (added <= 0) {
+    return 0;
+  }
+
+  inventory.set(itemId, current + added);
+  return added;
 }
 
 export function removeItem(inventory, itemId, count = 1) {
   if (!itemId || count <= 0) return false;
+  const requested = Math.floor(count);
   const current = getCount(inventory, itemId);
-  if (current < count) return false;
-  const next = current - Math.floor(count);
+  if (current < requested) return false;
+  const next = current - requested;
   if (next <= 0) {
     inventory.delete(itemId);
   } else {
@@ -380,18 +424,35 @@ export function consumeItems(inventory, requirement) {
   return true;
 }
 
+export function canApplyOutput(inventory, output) {
+  const virtual = new Map(inventory);
+  for (const [itemId, count] of Object.entries(output)) {
+    const added = addItem(virtual, itemId, count);
+    if (added < Math.floor(count)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function applyOutput(inventory, output) {
   for (const [itemId, count] of Object.entries(output)) {
-    addItem(inventory, itemId, count);
+    const added = addItem(inventory, itemId, count);
+    if (added < Math.floor(count)) {
+      return false;
+    }
   }
+  return true;
 }
 
 export function craftRecipe(inventory, recipe) {
+  if (!canApplyOutput(inventory, recipe.output)) {
+    return false;
+  }
   if (!consumeItems(inventory, recipe.input)) {
     return false;
   }
-  applyOutput(inventory, recipe.output);
-  return true;
+  return applyOutput(inventory, recipe.output);
 }
 
 export function getDropsForBlock(blockType) {
@@ -415,7 +476,7 @@ export function getDropsForMob(mobType) {
 
 export function findFirstCraftable(inventory, recipes) {
   for (const recipe of recipes) {
-    if (hasItems(inventory, recipe.input)) {
+    if (hasItems(inventory, recipe.input) && canApplyOutput(inventory, recipe.output)) {
       return recipe;
     }
   }
@@ -425,7 +486,7 @@ export function findFirstCraftable(inventory, recipes) {
 export function summarizeInventory(inventory, max = 8) {
   const entries = Array.from(inventory.entries())
     .filter(([, count]) => count > 0)
-    .sort((a, b) => b[1] - a[1]);
+    .sort((a, b) => b[1] - a[1] || getItemName(a[0]).localeCompare(getItemName(b[0])));
 
   return entries.slice(0, max).map(([id, count]) => `${getItemName(id)} x${count}`);
 }
