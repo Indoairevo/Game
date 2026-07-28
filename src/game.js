@@ -95,6 +95,104 @@ export class Game {
     
     // Raycast for block interactions
     this.raycaster = new THREE.Raycaster();
+
+    this.otherPlayers = new Map();
+    this.setupNetwork();
+  }
+
+  setupNetwork() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    this.ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+    this.ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'init') {
+          this.playerId = data.id;
+
+          // Apply initial players
+          for (const p of data.players) {
+            this.addOtherPlayer(p);
+          }
+
+          // Apply initial blocks
+          for (const [pos, type] of data.blocks) {
+            const [x, y, z] = pos.split(',').map(Number);
+            this.world.setNetworkBlock(x, y, z, type);
+          }
+        } else if (data.type === 'player_join') {
+          this.addOtherPlayer(data.player);
+        } else if (data.type === 'player_move') {
+          this.updateOtherPlayer(data);
+        } else if (data.type === 'player_leave') {
+          this.removeOtherPlayer(data.id);
+        } else if (data.type === 'block_placed') {
+          this.world.setNetworkBlock(data.x, data.y, data.z, data.blockType);
+          this.audio.playPlace();
+        } else if (data.type === 'block_broken') {
+          this.world.setNetworkBlock(data.x, data.y, data.z, 0);
+          this.audio.playBreak();
+        }
+      } catch(e) {
+        console.error('WebSocket message parsing error', e);
+      }
+    };
+  }
+
+  addOtherPlayer(p) {
+    // Create a simple box character representation
+    const geometry = new THREE.BoxGeometry(0.8, 1.8, 0.8);
+    // Move origin to bottom of player
+    geometry.translate(0, 0.9, 0);
+    const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    // Add "eyes" to indicate viewing direction
+    const eyeGeom = new THREE.BoxGeometry(0.6, 0.2, 0.1);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+    const eyes = new THREE.Mesh(eyeGeom, eyeMat);
+    eyes.position.set(0, 1.5, 0.41);
+    mesh.add(eyes);
+
+    mesh.position.set(p.x, p.y, p.z);
+
+    // Apply yaw to mesh rotation
+    const euler = new THREE.Euler(0, p.yaw, 0, 'YXZ');
+    mesh.quaternion.setFromEuler(euler);
+
+    this.scene.add(mesh);
+    this.otherPlayers.set(p.id, mesh);
+  }
+
+  updateOtherPlayer(p) {
+    if (this.otherPlayers.has(p.id)) {
+      const mesh = this.otherPlayers.get(p.id);
+      mesh.position.set(p.x, p.y, p.z);
+      const euler = new THREE.Euler(0, p.yaw, 0, 'YXZ');
+      mesh.quaternion.setFromEuler(euler);
+      // Pitch could be applied to head if we separated body and head
+    }
+  }
+
+  removeOtherPlayer(id) {
+    if (this.otherPlayers.has(id)) {
+      const mesh = this.otherPlayers.get(id);
+      this.scene.remove(mesh);
+      this.otherPlayers.delete(id);
+    }
+  }
+
+  sendPlayerMove() {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'player_move',
+        x: this.player.position.x,
+        y: this.player.position.y,
+        z: this.player.position.z,
+        pitch: this.player.pitch,
+        yaw: this.player.yaw
+      }));
+    }
   }
   
   setupScene() {
@@ -481,6 +579,15 @@ export class Game {
 
       const removed = this.world.removeBlock(blockPos);
       if (removed !== BlockType.AIR) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({
+            type: 'block_broken',
+            x: blockPos.x,
+            y: blockPos.y,
+            z: blockPos.z
+          }));
+        }
+
         const drops = getDropsForBlock(removed);
         this.addDropsToInventory(drops);
         this.audio.playBreak();
@@ -516,6 +623,16 @@ export class Game {
 
       const added = this.world.addBlock(blockPos, blockType);
       if (added) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({
+            type: 'block_placed',
+            x: blockPos.x,
+            y: blockPos.y,
+            z: blockPos.z,
+            blockType: blockType
+          }));
+        }
+
         removeItem(this.inventory, selectedItem, 1);
         this.syncSelectedBlockWithHotbar();
         this.updateSelectedBlockDisplay();
@@ -737,6 +854,7 @@ export class Game {
     
     // Update player
     this.player.update();
+    this.sendPlayerMove();
     
     // Update camera
     this.camera.position.copy(this.player.position);

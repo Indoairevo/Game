@@ -12,6 +12,7 @@ export class World {
   constructor(scene) {
     this.scene = scene;
     this.blocks = new Map();
+    this.modifiedBlocks = new Map(); // Store changes received from server
     this.chunkSize = 16;
     this.worldMinY = 0;
     this.worldMaxY = 86;
@@ -126,6 +127,27 @@ export class World {
       }
     }
 
+    // Apply any modifications that have been received from the server
+    for (let x = xStart; x < xStart + this.chunkSize; x++) {
+      for (let z = zStart; z < zStart + this.chunkSize; z++) {
+        for (let y = this.worldMinY; y <= this.worldMaxY; y++) {
+          const key = this.blockKey(x, y, z);
+          if (this.modifiedBlocks.has(key)) {
+            const modifiedType = this.modifiedBlocks.get(key);
+            if (modifiedType === BlockType.AIR) {
+              if (this.blocks.has(key)) {
+                this.blocks.delete(key);
+                if (keys.has(key)) keys.delete(key);
+              }
+            } else {
+              this.blocks.set(key, modifiedType);
+              keys.add(key);
+            }
+          }
+        }
+      }
+    }
+
     this.chunkBlocks.set(cKey, keys);
     this.loadedChunks.add(cKey);
   }
@@ -228,6 +250,37 @@ export class World {
     }
   }
 
+  setNetworkBlock(x, y, z, type) {
+    if (y <= this.worldMinY || y > this.worldMaxY) return;
+    const key = this.blockKey(x, y, z);
+
+    // Store in modified blocks so chunks will load correctly later
+    this.modifiedBlocks.set(key, type);
+
+    // Also apply immediately if chunk is loaded
+    if (type === BlockType.AIR) {
+      this.blocks.delete(key);
+    } else {
+      this.blocks.set(key, type);
+    }
+
+    const cx = Math.floor(x / this.chunkSize);
+    const cz = Math.floor(z / this.chunkSize);
+    const cKey = this.chunkKey(cx, cz);
+
+    if (this.loadedChunks.has(cKey)) {
+      if (!this.chunkBlocks.has(cKey)) {
+        this.chunkBlocks.set(cKey, new Set());
+      }
+      if (type === BlockType.AIR) {
+        this.chunkBlocks.get(cKey).delete(key);
+      } else {
+        this.chunkBlocks.get(cKey).add(key);
+      }
+      this.rebuildMesh();
+    }
+  }
+
   addBlock(pos, type) {
     if (type === BlockType.AIR) return false;
     const x = Math.floor(pos.x);
@@ -237,6 +290,7 @@ export class World {
     const key = this.blockKey(x, y, z);
     if (this.blocks.get(key) === type) return false;
     this.blocks.set(key, type);
+    this.modifiedBlocks.set(key, type);
 
     const cx = Math.floor(x / this.chunkSize);
     const cz = Math.floor(z / this.chunkSize);
@@ -260,6 +314,7 @@ export class World {
       return BlockType.AIR;
     }
     this.blocks.delete(key);
+    this.modifiedBlocks.set(key, BlockType.AIR);
 
     const cx = Math.floor(x / this.chunkSize);
     const cz = Math.floor(z / this.chunkSize);
