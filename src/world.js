@@ -102,7 +102,7 @@ export class World {
           if (y > this.worldMinY + 2 && y < terrainHeight - 2 && this.isCave(x, y, z)) {
             continue;
           }
-          let type = this.pickTerrainBlock(biome, y, terrainHeight);
+          let type = this.pickTerrainBlock(biome, y, terrainHeight, x, z);
 
           if (type === BlockType.STONE) {
             type = this.pickOre(x, y, z);
@@ -165,15 +165,20 @@ export class World {
     return v > 0.35;
   }
 
-  pickTerrainBlock(biome, y, topY) {
+  pickTerrainBlock(biome, y, topY, x, z) {
+    const sedimentNoise = this.detailNoise.perlin(x * 0.12 + 37, z * 0.12 + 73);
+    const shoreNoise = this.detailNoise.perlin(x * 0.18 + 211, z * 0.18 + 97);
+
     if (y === this.worldMinY) return BlockType.BEDROCK;
     if (y === topY) {
       if (biome === "desert") return BlockType.SAND;
       if (biome === "snow") return BlockType.SNOW;
+      if (topY <= this.seaLevel + 1 && shoreNoise > 0.22) return BlockType.CLAY;
       return BlockType.GRASS;
     }
     if (y >= topY - 3) {
       if (biome === "desert") return BlockType.SAND;
+      if (sedimentNoise > 0.42) return BlockType.GRAVEL;
       return BlockType.DIRT;
     }
     return BlockType.STONE;
