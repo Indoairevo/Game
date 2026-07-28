@@ -5,7 +5,7 @@ A 3D voxel-based sandbox game built with Three.js, featuring block-based world g
 ## Features
 
 - **First-Person Gameplay**: Navigate a 3D voxel world from a first-person perspective
-- **Block Types**: Multiple block types (Grass, Stone, Wood, Dirt) with different colors
+- **Block Types**: Multiple block types (Grass, Dirt, Stone, Sand, Gravel, Clay, Snow, Wood, Ores, Glass, Liquids)
 - **Terrain Generation**: Procedurally generated terrain using noise-based algorithms
 - **Block Interaction**: Break blocks (left-click) and place blocks (right-click)
 - **Block Selection**: Switch between 4 different block types using number keys 1-4
@@ -23,7 +23,7 @@ A 3D voxel-based sandbox game built with Three.js, featuring block-based world g
 | **Mouse** | Look around |
 | **Left Click** | Remove block |
 | **Right Click** | Place block |
-| **1-4** | Select block type (Grass, Stone, Wood, Dirt) |
+| **1-9 / Wheel** | Select hotbar item / block |
 | **Shift** | Sprint |
 | **R** | Reset to spawn point |
 
@@ -50,10 +50,10 @@ npx http-server . -p 8000
 
 ### Block Types
 
-1. **Grass** - Green blocks that appear on terrain surface
-2. **Stone** - Gray blocks found deeper underground
-3. **Wood** - Brown blocks for building structures
-4. **Dirt** - Light brown blocks for terrain
+1. **Surface Blocks** - Grass, Dirt, Sand, Snow, and Clay based on biome/shore
+2. **Subsurface Blocks** - Stone and Gravel layers under terrain
+3. **Natural Blocks** - Wood and Leaves from trees
+4. **Ore Blocks** - Coal, Iron, Gold, and Diamond underground
 
 ### Terrain Generation
 
