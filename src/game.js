@@ -126,6 +126,8 @@ export class Game {
     bounce.position.set(-60, 45, -80);
     this.scene.add(bounce);
     this.bounceLight = bounce;
+
+    this.createSkyDecor();
   }
 
   createClouds() {
@@ -146,6 +148,43 @@ export class Game {
       this.clouds.push(cloud);
       this.scene.add(cloud);
     }
+  }
+
+  createSkyDecor() {
+    const sunGeo = new THREE.SphereGeometry(8, 24, 24);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xfff2c0 });
+    this.sunSprite = new THREE.Mesh(sunGeo, sunMat);
+    this.scene.add(this.sunSprite);
+
+    const moonGeo = new THREE.SphereGeometry(5.5, 20, 20);
+    const moonMat = new THREE.MeshBasicMaterial({ color: 0xc9d7ff, transparent: true, opacity: 0.4 });
+    this.moonSprite = new THREE.Mesh(moonGeo, moonMat);
+    this.scene.add(this.moonSprite);
+
+    const stars = [];
+    const starCount = 300;
+    const radius = 320;
+    for (let i = 0; i < starCount; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.cos(phi) * 0.6 + 80;
+      const z = radius * Math.sin(phi) * Math.sin(theta);
+      stars.push(x, y, z);
+    }
+
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute("position", new THREE.Float32BufferAttribute(stars, 3));
+    const starMat = new THREE.PointsMaterial({
+      color: 0xdce9ff,
+      size: 1.2,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    this.starField = new THREE.Points(starGeo, starMat);
+    this.scene.add(this.starField);
   }
   
   setupInputHandling() {
@@ -655,6 +694,16 @@ export class Game {
     this.sunLight.intensity = 0.25 + daylight * 1.05;
     this.bounceLight.intensity = 0.1 + daylight * 0.22;
     this.renderer.toneMappingExposure = 0.7 + daylight * 0.72;
+
+    const skyOrbitRadius = 260;
+    this.sunSprite.position.set(Math.cos(sunAngle) * skyOrbitRadius, 135 * daylight + 18, Math.sin(sunAngle) * skyOrbitRadius);
+    this.moonSprite.position.set(
+      Math.cos(sunAngle + Math.PI) * (skyOrbitRadius - 18),
+      120 * (1 - daylight) + 20,
+      Math.sin(sunAngle + Math.PI) * (skyOrbitRadius - 18)
+    );
+    this.moonSprite.material.opacity = 0.18 + (1 - daylight) * 0.72;
+    this.starField.material.opacity = Math.max(0, (1 - daylight) * 0.8 - 0.06);
 
     const sky = this.nightSky.clone().lerp(this.daySky, daylight);
     const fog = this.nightFog.clone().lerp(this.dayFog, daylight);
